@@ -1,0 +1,17 @@
+{
+  "name": "kahoot-github-actions-monitor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "kahoot": "node src/kahoot-runner.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "kahoot.js-updated": "github:theusaf/kahoot.js-updated#2.4.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.3"
+  }
+}
