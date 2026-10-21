@@ -6,7 +6,8 @@ const pin = String(process.env.KAHOOT_PIN || "").trim();
 const name = String(process.env.KAHOOT_NAME || "github-monitor").trim().slice(0, 20);
 const waitSeconds = Math.max(30, Number(process.env.WAIT_SECONDS || 600));
 const groqApiKey = process.env.GROQ_API_KEY;
-const groqModel = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const groqModel = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
+const groqReasoningEffort = process.env.GROQ_REASONING_EFFORT || "none";
 const logDir = path.resolve("artifacts");
 const logFile = path.join(logDir, "kahoot-events.ndjson");
 
@@ -66,8 +67,10 @@ async function analyzeWithGroq(question) {
     },
     body: JSON.stringify({
       model: groqModel,
-      temperature: 0.1,
-      max_tokens: 500,
+      temperature: 0.7,
+      top_p: 0.8,
+      max_completion_tokens: 500,
+      reasoning_effort: groqReasoningEffort,
       messages: [
         {
           role: "system",
@@ -87,7 +90,7 @@ async function analyzeWithGroq(question) {
 }
 
 async function main() {
-  record("runner_start", { pin, name, waitSeconds, groq: Boolean(groqApiKey), groqModel });
+  record("runner_start", { pin, name, waitSeconds, groq: Boolean(groqApiKey), groqModel, groqReasoningEffort });
 
   const client = new Kahoot();
   let joined = false;
