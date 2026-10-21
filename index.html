@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kahoot Monitor Control</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1020; --panel:#121a2d; --line:#293653; --text:#edf3ff; --muted:#9aa9c4; --accent:#6d7cff; --good:#45d49a; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 20% 0%,#1c2850 0,#0b1020 48%); color:var(--text); font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    main { width:min(760px,calc(100% - 32px)); margin:0 auto; padding:56px 0; }
+    .eyebrow { color:var(--good); font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:12px; }
+    h1 { margin:10px 0 8px; font-size:clamp(30px,6vw,52px); line-height:1.05; }
+    .lead { color:var(--muted); max-width:620px; }
+    .panel { margin-top:28px; padding:24px; background:rgba(18,26,45,.9); border:1px solid var(--line); border-radius:18px; box-shadow:0 18px 60px #0003; }
+    label { display:block; margin:16px 0 7px; color:var(--muted); font-size:14px; }
+    input { width:100%; border:1px solid var(--line); border-radius:10px; background:#0b1222; color:var(--text); padding:13px 14px; font:inherit; }
+    button, a.button { display:inline-flex; justify-content:center; align-items:center; border:0; border-radius:10px; padding:13px 16px; margin-top:20px; background:var(--accent); color:white; font:700 15px inherit; text-decoration:none; cursor:pointer; }
+    button.secondary { margin-left:8px; background:#263452; }
+    #result { display:none; margin-top:20px; padding:15px; border-radius:10px; background:#0b1222; color:var(--muted); white-space:pre-wrap; word-break:break-word; }
+    .note { margin-top:18px; color:var(--muted); font-size:13px; }
+    code { color:#d6dcff; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">GitHub Pages · Kahoot Monitor</div>
+    <h1>問題取得を準備する</h1>
+    <p class="lead">PINと参加者名を入力して、GitHub Actionsの実行に使う値を準備します。Kahootへの接続とGroq APIキーはGitHub Actions側で安全に扱います。</p>
+    <section class="panel">
+      <form id="form">
+        <label for="pin">Game PIN</label>
+        <input id="pin" inputmode="numeric" pattern="[0-9]{4,10}" required placeholder="595181">
+        <label for="name">参加者名</label>
+        <input id="name" maxlength="20" required value="github-monitor">
+        <label for="seconds">監視時間（秒）</label>
+        <input id="seconds" type="number" min="30" max="1200" value="600" required>
+        <button type="submit">実行情報を作成</button>
+        <button class="secondary" type="button" id="open">Actionsを開く</button>
+      </form>
+      <div id="result"></div>
+      <p class="note">GitHub PagesからSecretsを直接送信することはできません。入力値をActionsのRun workflow画面へ入力してください。APIキーをこのページに貼り付けないでください。</p>
+    </section>
+  </main>
+<script>
+  const form = document.querySelector('#form');
+  const result = document.querySelector('#result');
+  const pin = document.querySelector('#pin');
+  const name = document.querySelector('#name');
+  const seconds = document.querySelector('#seconds');
+  const repoPath = location.pathname.split('/').filter(Boolean)[0] || '';
+  const owner = location.hostname.endsWith('.github.io') ? location.hostname.split('.')[0] : '';
+  const actionsUrl = owner && repoPath ? `https://github.com/${owner}/${repoPath}/actions/workflows/kahoot.yml` : 'https://github.com/';
+  document.querySelector('#open').addEventListener('click', () => window.open(actionsUrl, '_blank', 'noopener'));
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!/^\d{4,10}$/.test(pin.value)) { result.style.display='block'; result.textContent='PINは4〜10桁の数字で入力してください。'; return; }
+    const text = `ActionsのRun workflow画面へ入力してください。\n\npin: ${pin.value}\nname: ${name.value.slice(0,20)}\nwait_seconds: ${seconds.value}\n\nActions URL:\n${actionsUrl}`;
+    result.style.display='block'; result.textContent=text;
+    navigator.clipboard?.writeText(text).catch(() => {});
+  });
+</script>
+</body>
+</html>
