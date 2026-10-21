@@ -17,6 +17,8 @@ on:
         required: true
         default: "600"
         type: string
+  repository_dispatch:
+    types: [kahoot_run]
 
 permissions:
   contents: read
@@ -26,9 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      KAHOOT_PIN: ${{ inputs.pin }}
-      KAHOOT_NAME: ${{ inputs.name }}
-      WAIT_SECONDS: ${{ inputs.wait_seconds }}
+      KAHOOT_PIN: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.pin || inputs.pin }}
+      KAHOOT_NAME: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.name || inputs.name }}
+      WAIT_SECONDS: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.wait_seconds || inputs.wait_seconds }}
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       GROQ_MODEL: ${{ vars.GROQ_MODEL || 'qwen/qwen3.8-27b' }}
       GROQ_REASONING_EFFORT: none
@@ -46,7 +48,7 @@ jobs:
         run: npm ci
 
       - name: Join Kahoot and monitor questions
-        run: node src/kahoot-runner.js
+        run: node src/kahoot-runner.cjs
 
       - name: Upload Kahoot event log
         if: always()
